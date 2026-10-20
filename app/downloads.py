@@ -182,62 +182,78 @@ def _format_selector(quality: str) -> str:
 async def _run_download(job: dict, cancel_event: asyncio.Event) -> None:
     jid = job["id"]
     outtmpl = str(DOWNLOAD_DIR / f"{jid}-%(title).140B.%(ext)s")
-    cmd = [os.sys.executable, "-m", "yt_dlp", "--newline", "--no-playlist", "--no-warnings", "--progress-template", "download:__PERCENT__%(progress._percent_str)s", "--max-filesize", f"{MAX_GIB}G", "--ffmpeg-location", imageio_ffmpeg.get_ffmpeg_exe(), "-f", _format_selector(job["quality"]), "-o", outtmpl, "--merge-output-format", "mp4", "--restrict-filenames"]
-    cookiefile = os.getenv("YTDLP_COOKIES_FILE", "").strip()
-    from_browser = os.getenv("YTDLP_COOKIES_FROM_BROWSER", "").strip()
     try:
-        opts = _ydl_options()
+        options = _ydl_options()
     except Exception as exc:
         raise ValueError(_error_message(exc)) from None
-    if cookiefile:
-        cmd += ["--cookies", cookiefile]
-    if from_browser:
-        cmd += ["--cookies-from-browser", from_browser]
-    cmd.append(job["url"])
-    proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+    output_tail: list[str] = []
+
+    class YDLLogger:
+        def debug(self, message: str) -> None:
+            return
+
+        def warning(self, message: str) -> None:
+            return
+
+        def error(self, message: str) -> None:
+            output_tail.append(message[:400])
+            del output_tail[:-12]
+
+    options.update({
+        "format": _format_selector(job["quality"]),
+        "outtmpl": outtmpl,
+        "max_filesize": MAX_GIB * 1024**3,
+        "ffmpeg_location": imageio_ffmpeg.get_ffmpeg_exe(),
+        "merge_output_format": "mp4",
+        "restrictfilenames": True,
+        "logger": YDLLogger(),
+        "progress_hooks": [],
+    })
+
+    def progress_hook(progress: dict) -> None:
+        if cancel_event.is_set():
+            raise yt_dlp.utils.DownloadCancelled("Download cancelled by user")
+        if progress.get("status") == "downloading":
+            total = progress.get("total_bytes") or progress.get("total_bytes_estimate")
+            if total:
+                percent = min(99.0, progress.get("downloaded_bytes", 0) * 100 / total)
+                with sqlite3.connect(DB_PATH) as db:
+                    db.execute("UPDATE jobs SET progress=?, updated=? WHERE id=?", (percent, time.time(), jid))
+
+    options["progress_hooks"].append(progress_hook)
     with sqlite3.connect(DB_PATH) as db:
         db.execute("UPDATE jobs SET status='downloading', updated=? WHERE id=?", (time.time(), jid))
-    output_tail = []
+
+    def download() -> int:
+        with yt_dlp.YoutubeDL(options) as ydl:
+            return ydl.download([job["url"]])
+
     try:
-        while True:
-            if cancel_event.is_set() and proc.returncode is None:
-                proc.terminate()
-            line = await proc.stdout.readline()
-            if not line:
-                break
-            text = line.decode("utf-8", "replace").strip()
-            if "__PERCENT__" in text:
-                match = re.search(r"([0-9]+(?:\.[0-9]+)?)%", text)
-                if match:
-                    with sqlite3.connect(DB_PATH) as db:
-                        db.execute("UPDATE jobs SET progress=?, updated=? WHERE id=?", (float(match.group(1)), time.time(), jid))
-            elif text:
-                output_tail.append(text[:400])
-                output_tail = output_tail[-12:]
-        code = await proc.wait()
-        if cancel_event.is_set():
-            for partial in DOWNLOAD_DIR.glob(f"{jid}-*"):
-                if partial.is_file():
-                    partial.unlink(missing_ok=True)
-            with sqlite3.connect(DB_PATH) as db:
-                db.execute("UPDATE jobs SET status='cancelled', error=NULL, updated=? WHERE id=?", (time.time(), jid))
-            return
-        if code:
-            raise RuntimeError(" ".join(output_tail))
-        candidates = list(DOWNLOAD_DIR.glob(f"{jid}-*"))
-        candidates = [p for p in candidates if p.is_file() and p.suffix not in {".part", ".ytdl"}]
-        if not candidates:
-            raise RuntimeError("No completed download file was produced.")
-        completed = max(candidates, key=lambda p: p.stat().st_mtime)
-        if completed.stat().st_size > MAX_GIB * 1024**3:
-            completed.unlink(missing_ok=True)
-            raise RuntimeError("This file exceeds the configured download size limit.")
+        result = await asyncio.to_thread(download)
+    except Exception:
+        if not cancel_event.is_set():
+            raise
+        result = 1
+
+    if cancel_event.is_set():
+        for partial in DOWNLOAD_DIR.glob(f"{jid}-*"):
+            if partial.is_file():
+                partial.unlink(missing_ok=True)
         with sqlite3.connect(DB_PATH) as db:
-            db.execute("UPDATE jobs SET status='completed', progress=100, filename=?, updated=? WHERE id=?", (completed.name, time.time(), jid))
-    finally:
-        if proc.returncode is None:
-            proc.kill()
-            await proc.wait()
+            db.execute("UPDATE jobs SET status='cancelled', error=NULL, updated=? WHERE id=?", (time.time(), jid))
+        return
+    if result:
+        raise RuntimeError(" ".join(output_tail) or "yt-dlp could not complete this download.")
+    candidates = list(DOWNLOAD_DIR.glob(f"{jid}-*"))
+    candidates = [p for p in candidates if p.is_file() and p.suffix not in {".part", ".ytdl"}]
+    if not candidates:
+        raise RuntimeError("No completed download file was produced.")
+    completed = max(candidates, key=lambda p: p.stat().st_mtime)
+    if completed.stat().st_size > MAX_GIB * 1024**3:
+        completed.unlink(missing_ok=True)
+        raise RuntimeError("This file exceeds the configured download size limit.")
+    with sqlite3.connect(DB_PATH) as db:
+        db.execute("UPDATE jobs SET status='completed', progress=100, filename=?, updated=? WHERE id=?", (completed.name, time.time(), jid))
 
 
 async def _worker() -> None:
