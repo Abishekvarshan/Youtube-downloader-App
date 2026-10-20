@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f8f5">
+  <meta name="description" content="Download Streamline for Windows. A simple desktop app for managing video downloads you are allowed to save.">
+  <title>Streamline — Windows download</title>
+  <style>
+    :root{color-scheme:light;--ink:#17231e;--muted:#68746e;--green:#117a57;--green-dark:#0c6346;--line:#e2e9e3;--paper:#fff;--wash:#f5f8f5}
+    *{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+    a{color:inherit}.wrap{width:min(1020px,calc(100% - 40px));margin:auto}.top{height:76px;display:flex;align-items:center;border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:11px;font-size:19px;font-weight:800;letter-spacing:-.5px;text-decoration:none}.mark{width:36px;height:36px;border-radius:12px;background:var(--green);display:grid;place-items:center;color:white;font-size:16px}
+    main{padding:74px 0 56px}.hero{max-width:720px}.eyebrow{color:var(--green);font-weight:750;font-size:12px;letter-spacing:1.5px;text-transform:uppercase}
+    h1{font-size:clamp(40px,7vw,66px);letter-spacing:-3px;line-height:1.04;margin:15px 0 18px}.intro{font-size:18px;color:var(--muted);max-width:610px;margin:0}
+    .actions{display:flex;align-items:center;gap:17px;flex-wrap:wrap;margin:30px 0 14px}.download{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:15px 22px;border-radius:12px;background:var(--green);color:#fff;text-decoration:none;font-weight:750;box-shadow:0 8px 20px #117a5724}.download:hover{background:var(--green-dark)}.small{font-size:13px;color:var(--muted)}
+    .notice{border:1px solid #dce8de;background:#fff;border-radius:15px;padding:20px 22px;margin-top:44px;max-width:720px}.notice h2{font-size:16px;margin:0 0 8px}.notice p{font-size:14px;color:var(--muted);margin:0}.notice a{color:var(--green);font-weight:650}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:38px;max-width:840px}.step{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:17px}.num{font-size:12px;font-weight:800;color:var(--green)}.step h3{font-size:15px;margin:6px 0}.step p{font-size:13px;color:var(--muted);margin:0}
+    footer{padding:20px 0 32px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}footer p{max-width:800px;margin:0}
+    @media(max-width:650px){main{padding-top:52px}.steps{grid-template-columns:1fr}.actions{align-items:flex-start;flex-direction:column}.download{width:100%}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="wrap"><a class="brand" href="#top" aria-label="Streamline home"><span class="mark" aria-hidden="true">▶</span><span>Streamline</span></a></div></header>
+  <main id="top" class="wrap">
+    <section class="hero" aria-labelledby="title">
+      <div class="eyebrow">Windows desktop app</div>
+      <h1 id="title">Your videos,<br>ready when you are.</h1>
+      <p class="intro">Streamline is a simple desktop app for saving and organizing videos you have permission to download.</p>
+      <div class="actions">
+        <a class="download" href="https://github.com/Abishekvarshan/Youtube-downloader-App/releases/latest/download/Streamline-Windows.zip">
+          <span aria-hidden="true">↓</span> Download for Windows
+        </a>
+        <span class="small">ZIP package · Windows 10/11 · No Python setup</span>
+      </div>
+    </section>
+    <section class="steps" aria-label="Install steps">
+      <article class="step"><div class="num">01</div><h3>Download</h3><p>Save the ZIP package to your computer.</p></article>
+      <article class="step"><div class="num">02</div><h3>Unzip</h3><p>Extract it to a folder you can write to, such as Documents.</p></article>
+      <article class="step"><div class="num">03</div><h3>Open Streamline</h3><p>Run Streamline.exe. Your downloads and app data stay in that folder.</p></article>
+    </section>
+    <aside class="notice">
+      <h2>First-time setup</h2>
+      <p>Streamline needs the Microsoft Edge WebView2 Runtime. Most Windows PCs already have it. If the app asks for it, <a href="https://developer.microsoft.com/microsoft-edge/webview2/">download the Evergreen Runtime from Microsoft</a>.</p>
+    </aside>
+  </main>
+  <footer><div class="wrap"><p>Only download videos that you own or are authorized to save. Follow YouTube’s terms and applicable copyright law. Streamline is an independent app and is not affiliated with YouTube.</p></div></footer>
+</body>
+</html>

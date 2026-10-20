@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#f6f8f6" />
+    <title>Streamline · Video downloads</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <nav class="shell nav">
+        <a class="brand" href="/"><span class="brand-mark">▶</span>streamline</a>
+        <span class="pill">Personal video downloader</span>
+      </nav>
+    </header>
+    <main class="shell">
+      <section class="hero">
+        <div class="eyebrow">Your personal video library</div>
+        <h1>Save videos to<br />watch later.</h1>
+        <p>Paste a YouTube video link, choose a quality, and add it to your download queue.</p>
+      </section>
+      <section class="card input-card">
+        <label for="url" class="label">YouTube video link</label>
+        <div class="url-row">
+          <div class="input-wrap">
+            <span>↗</span>
+            <input id="url" type="url" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" />
+          </div>
+          <button id="fetch" class="primary">Get video details&nbsp; →</button>
+        </div>
+        <div class="hint">Supports videos, Shorts, and youtu.be links.</div>
+        <div id="form-error" aria-live="polite"></div>
+      </section>
+      <div class="content-grid">
+        <section>
+          <div class="section-head"><h2 class="section-title">Video details</h2></div>
+          <div class="card preview" id="preview">
+            <div class="preview-empty">
+              <div class="empty-icon">▧</div>
+              <strong>Your video preview will appear here</strong>
+              <span>Paste a YouTube link above to get started.</span>
+            </div>
+          </div>
+        </section>
+        <section>
+          <div class="section-head">
+            <h2 class="section-title">Download queue</h2>
+            <button id="refresh" class="soft-btn">↻ Refresh</button>
+          </div>
+          <div class="card history"><div id="queue" class="queue-list"><div class="empty-history">Your queue is empty.</div></div></div>
+        </section>
+      </div>
+      <footer class="footer">Downloads are saved on this PC. Only download videos you have permission to save.</footer>
+    </main>
+  </body>
+</html>
